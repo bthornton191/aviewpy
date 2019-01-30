@@ -84,7 +84,7 @@ def _get_filename_from_dialog(file_type):
 
     elif file_type is 'csv':
         caption='Select location to save the csv results file.'
-        filter='Adams Results Files (*.res)'
+        filter='CSV Files (*.csv)'
         # Bring up a dialog for the user to select a results file
         filename = PyQt4.QtGui.QFileDialog.getSaveFileName(caption=caption, filter=filter)       
 
