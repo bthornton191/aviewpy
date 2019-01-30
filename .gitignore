@@ -1,0 +1,19 @@
+# Ignore the build and folders
+build/
+dist/
+
+# Eggs folder
+aviewpy.egg-info/
+
+# Ignore all pycache files
+/__pycache__/*
+__pycache__/*
+aviewpy/__pycache__/*
+
+# VS Code Files
+.vscode/
+/aviewpy/__pycache__
+/aviewpy/__pycache__/__init__.cpython-36.pyc
+/aviewpy/__pycache__/aviewpy.cpython-36.pyc
+aviewpy/__pycache__/__init__.cpython-36.pyc
+aviewpy/__pycache__/aviewpy.cpython-36.pyc

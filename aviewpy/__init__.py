@@ -1,1 +1,1 @@
-from . import aviewpy
+from .aviewpy import *
