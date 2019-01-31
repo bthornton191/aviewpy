@@ -6,12 +6,13 @@ Vishnu Balakrishnan - Consultant, MSC Software
 Ben Thornton - Consultant, MSC Software
 """
 
-import Adams
-import PyQt4.QtGui
-import numpy as np
 import os
 import csv
 from collections import OrderedDict
+import Adams #pylint: disable=import-error
+import PyQt4.QtGui #pylint: disable=import-error
+
+TIME_STRING = 'TIME'
 
 def res_to_csv(results_filename=None, output_filename=None):
     """Writes data in a results file selected by the user to a csv file.
@@ -53,7 +54,7 @@ def res_to_csv(results_filename=None, output_filename=None):
             ans = mod.Analyses.get(ans_name)
 
             # Filtering out XFORM result sets
-            filt_res_names = [res_name for res_name in ans.results if 'XFORM' not in res_name and 'TIME' not in res_name]
+            filt_res_names = [res_name for res_name in ans.results if 'XFORM' not in res_name and TIME_STRING not in res_name]
             
             for res_name in filt_res_names:
                 # For each result set, get the result set handle
@@ -62,25 +63,49 @@ def res_to_csv(results_filename=None, output_filename=None):
                     # for each result component in the result set, get the result component handle
                     comp = res.get(comp_name)
 
-                    if 'TIME' in comp_name and not time_found:
+                    if TIME_STRING in comp_name and not time_found:
                         # If this is the first time component encountered, add TIME to the data dictionary
-                        data['TIME'] = comp.values
+                        data[TIME_STRING] = comp.values
+                        time_found = True
 
-                    elif 'TIME' not in comp_name:
+                    elif TIME_STRING not in comp_name:
                         # If this is not a TIME component, add item to the data dictionary
                         # Key = (result set name), (result component name)
                         # Value = list of numeric data
                         data['{}.{}'.format(res_name, comp_name)] = comp.values
+        
+    if TIME_STRING in data:
+        # If the data dictionary has a time key, move it to the front
+        data.move_to_end(TIME_STRING, last=False) 
 
     if output_filename is None:
         # If the output file is not given, set equal to the results file
         output_filename = results_filename.replace('.res', '.csv')
-    with open(output_filename, "w",newline = '') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(data.keys())
-        writer.writerows(zip(*data.values()))
+
+    # Write the data dictionary to a csv
+    try:
+        with open(output_filename, "w",newline = '') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(data.keys())
+            writer.writerows(zip(*data.values()))
+    except PermissionError:
+        message_box = PyQt4.QtGui.QMessageBox()
+        message_box.setTitle('Permission Denied!')
+        message_box.setText(f'Permission to access {output_filename} was denied!  Please close any programs that are using it and rerun this script.')
+        message_box.setIcon(PyQt4.QtGui.QMessageBox.Warning)
+        message_box.setStandardButtons(PyQt4.QtGui.QMessageBox.Ok)
+        message_box.exec_()
 
 def _get_filename_from_dialog(file_type):
+    """Opens a dialog for user to select a file
+    
+    Arguments:
+        file_type {str} -- Type of file ('res' or 'csv')
+    
+    Returns:
+        str -- Filename of file selected by user.
+    """
+
     if file_type is 'res':
         caption = 'Select a results file.'
         filter = 'Adams Results Files (*.res)'
