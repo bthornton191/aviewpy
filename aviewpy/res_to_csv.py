@@ -4,6 +4,13 @@ Authors:
 ----------
 Vishnu Balakrishnan - Consultant, MSC Software
 Ben Thornton - Consultant, MSC Software
+
+Usage:
+---------
+1. Open Adams View
+2. Go to File>Import...
+3. Change File Type to 'Adams View Python File (*.py)"
+4. Select res_to_csv.py
 """
 
 import os
