@@ -1,7 +1,13 @@
 # adamspy
 
-Python tools for working in the adams view python environment.
+Python tools for working in the [Adams](https://hexagon.com/products/product-groups/computer-aided-engineering-software/adams) View python environment.
 
-Authors:
-Vishnu Balakrishnan - Consultant, MSC Software
-Ben Thornton - Consultant, MSC Software
+## Installation
+
+Installation via pip.
+```
+> pip install aviewpy
+```
+
+## Usage
+> TBD

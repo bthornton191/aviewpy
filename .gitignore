@@ -17,3 +17,7 @@ aviewpy/__pycache__/*
 /aviewpy/__pycache__/aviewpy.cpython-36.pyc
 aviewpy/__pycache__/__init__.cpython-36.pyc
 aviewpy/__pycache__/aviewpy.cpython-36.pyc
+
+# virtualenv
+env*/ 
+**__pycache__
