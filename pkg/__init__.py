@@ -7,7 +7,6 @@ author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'
 name = 'aviewpy'
 description = 'Python tools for working with in the Adams View python environment'
-url='https://github.com/bthornton191/aviewpy',
 install_requires = ['numpy',
                     'pandas',
                     'scipy']

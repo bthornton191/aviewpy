@@ -12,7 +12,7 @@ setuptools.setup(
     description=pkg.description,
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url=pkg.url,
+    url='https://github.com/bthornton191/aviewpy',
     packages=setuptools.find_packages(exclude=['test',
                                                'pkg',
                                                'env',
