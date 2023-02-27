@@ -64,7 +64,7 @@ def get_managers(parent: Object):
     return [mgr for mgr in parent.__dict__.values() if isinstance(mgr, AdamsManager)]
 
 
-def get_parent_model(entity: Object):
+def get_parent_model(entity: Object)->Model:
     """Returns the parent model of `entity`.
 
     Parameters
@@ -146,3 +146,16 @@ def unique_object_name(full_name: str) -> str:
         unique_name = f'{full_name}_{idx}'
         
     return unique_name
+
+
+def all_objects(obj_type: str = 'all') -> Generator[Object, None, None]:
+    if obj_type.lower() == 'model':
+        yield from (mod for mod in Adams.Models.values())
+
+    else:
+        for mod in Adams.Models.values():
+            objects = Adams.evaluate_exp(f'DB_DESCENDANTS({mod.full_name} , "{obj_type}" , 0 , 2 )')
+            if isinstance(objects, str):
+                objects = [objects]
+
+            yield from (get_object(name, mod) for name in objects)

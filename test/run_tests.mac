@@ -1,0 +1,7 @@
+!USER_ENTERED_COMMAND run_tests
+! -----------------------------------------------------------------
+! MACRO NAME:  run_tests.mac
+! DESCRIPTION: description   
+! AUTHOR:      Ben Thornton (ben.thornton@hexagon.com)
+!END_OF_PARAMETERS
+file python read file="test/run_tests_in_aview.py"

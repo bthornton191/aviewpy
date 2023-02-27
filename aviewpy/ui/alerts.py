@@ -12,7 +12,7 @@ def adams_errors_suppressed():
         Adams.execute_cmd('interface message graphic_window_level=Verbose')
 
 
-def alert_box(msg, alert_type: str = 'info', exc_type: Exception = None):
+def alert_box(msg: str, alert_type: str = 'info', exc_type: Exception = None):
     """Adams View alert box
 
     Parameters

@@ -16,6 +16,7 @@ from Part import Part  # type: ignore # noqa
 
 from .cs import CS, MarkerCS
 from .objects import get_parent_model
+from .ui.progressbar import progress_bar
 
 TESTING = False
 
@@ -134,7 +135,9 @@ def all_tracks_on_geometry(geom: Geometry, ans: Analysis) -> List[Track]:
     """
     mod: Model = ans.parent
     tracks: List[Track] = []
-    for cont in (c for c in mod.Contacts.values() if geom in c.i_geometry + c.j_geometry):
+    for cont in (c for c in mod.Contacts.values()
+                 if geom in c.i_geometry + c.j_geometry
+                 and c.name in ans.results):
         Adams.execute_cmd(
             f'analysis collate_contacts analysis={ans.full_name} contact={cont.full_name}'
         )
@@ -218,8 +221,6 @@ def get_track_data(ans: Analysis, track_name: str, mkr: Marker, I_part=True) -> 
                      np.array(penetration))
 
 
-
-
 def get_contact_data(geom: Geometry, ans: Analysis, ref_mkr: Marker) -> pd.DataFrame:
     """Gets a DataFrame of contact data needed for calculating wear.
 
@@ -247,35 +248,39 @@ def get_contact_data(geom: Geometry, ans: Analysis, ref_mkr: Marker) -> pd.DataF
         'track': []
     }).set_index('time', drop=True)]
 
-    for track in tracks:
+    inc = 100 / len(tracks) if len(tracks) > 0 else 0
+    with progress_bar(f'Processing {geom.parent.name}.{geom.name} contacts...') as pbar:
+        for track in tracks:
 
-        track_data = track.get_data(mkr=ref_mkr,
-                                    i_part=geom in track.cont.i_geometry)
+            track_data = track.get_data(mkr=ref_mkr,
+                                        i_part=geom in track.cont.i_geometry)
 
-        # Organize the data into a dictionary
-        data = {}
-        for key, values in track_data._asdict().items():
+            # Organize the data into a dictionary
+            data = {}
+            for key, values in track_data._asdict().items():
 
-            # Check if `values` has multiple components
-            if isinstance(values, np.ndarray) and len(values.shape) > 1:
+                # Check if `values` has multiple components
+                if isinstance(values, np.ndarray) and len(values.shape) > 1:
 
-                # If `values` has multiple components,
-                # split the components (x,y,z) and get magnitudes
-                data = {
-                    **data,
-                    **{f'{key}_{d}': values[:, i] for i, d in enumerate(['x', 'y', 'z'])},
-                    key: np.sqrt(np.apply_along_axis(np.sum, 1, values**2))
-                }
+                    # If `values` has multiple components,
+                    # split the components (x,y,z) and get magnitudes
+                    data = {
+                        **data,
+                        **{f'{key}_{d}': values[:, i] for i, d in enumerate(['x', 'y', 'z'])},
+                        key: np.sqrt(np.apply_along_axis(np.sum, 1, values**2))
+                    }
 
-            else:
-                data[key] = values
+                else:
+                    data[key] = values
 
-        # Create DataFrame and append to list
-        dfs.append(pd.DataFrame({**data,
-                                'step': pd.Series(track_data.time).diff(-1).ffill()*-1,
-                                 'contact': track.cont.name,
-                                 'track': track.name})
-                   .set_index('time', drop=True)
-                   .sort_index())
+            # Create DataFrame and append to list
+            dfs.append(pd.DataFrame({**data,
+                                    'step': pd.Series(track_data.time).diff(-1).fillna(0)*-1,
+                                    'contact': track.cont.name,
+                                    'track': track.name})
+                    .set_index('time', drop=True)
+                    .sort_index())
+
+            pbar.progress += inc
 
     return pd.concat(dfs)
