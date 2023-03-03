@@ -1,5 +1,5 @@
 # ---------------------
-version = '1.3.1'
+version = '1.3.2'
 version_notes = 'minor bug fixes'
 date = 'March 3rd, 2023'
 # ---------------------
