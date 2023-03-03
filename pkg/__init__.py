@@ -1,5 +1,5 @@
 # ---------------------
-version = '2.0.0'
+version = '1.2.0'
 version_notes = ''
 date = 'February 27th, 2023'
 # ---------------------
