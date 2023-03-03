@@ -1,7 +1,7 @@
 # ---------------------
-version = '1.2.0'
+version = '1.3.0'
 version_notes = ''
-date = 'February 27th, 2023'
+date = 'March 3rd, 2023'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'
@@ -10,4 +10,5 @@ description = 'Python tools for working with in the Adams View python environmen
 install_requires = ['numpy',
                     'pandas',
                     'scipy',
-                    'numpy-stl']
+                    'numpy-stl',
+                    'adamspy']
