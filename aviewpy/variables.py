@@ -3,7 +3,7 @@ from numbers import Number
 from typing import Iterable, List, Union
 
 import Adams  # type: ignore # noqa # isort: skip
-from Object import Object  # type: ignore # noqa # isort: skip
+from Object import ObjectBase as Object  # type: ignore # noqa # isort: skip
 
 
 def set_dv(parent, name: str, value, append=False, **kwargs):
@@ -76,16 +76,16 @@ def _create_dv(value: list, parent: Object, name: str, **kwargs):
     **kwargs
         Additional keyword arguments to pass to the DesignVariable.create* methods.
     """
-    if isinstance(value, List[str]):
+    if isinstance(value, list) and all(isinstance(v, str) for v in value):
         dv = parent.DesignVariables.createString(name=name, value=value, **kwargs)
 
-    elif isinstance(value, List[Number]):
+    elif isinstance(value, list) and all(isinstance(v, Number) for v in value):
         dv = parent.DesignVariables.createReal(name=name, value=value, **kwargs)
 
-    elif isinstance(value, List[int]):
+    elif isinstance(value, list) and all(isinstance(v, int) for v in value):
         dv = parent.DesignVariables.createInteger(name=name, value=value, **kwargs)
 
-    elif isinstance(value, List[Object]):
+    elif isinstance(value, list) and all(isinstance(v, Object) for v in value):
         dv = parent.DesignVariables.createObject(name=name, value=value, **kwargs)
     else:
         raise TypeError(f'Invalid type for value: {type(value)}')
@@ -105,19 +105,19 @@ def _cmd_set_dv(value: list, parent: str, name: str):
     name : str
         Name of the design variable
     """
-    if isinstance(value, List[str]):
+    if isinstance(value, list) and all(isinstance(v, str) for v in value):
         val_text = ', '.join([f'"{v}"' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} str={val_text}')
 
-    elif isinstance(value, List[Number]):
+    elif isinstance(value, list) and all(isinstance(v, Number) for v in value):
         val_text = ', '.join(value)
         Adams.execute_cmd(f'var set var={parent}.{name} real={val_text}')
 
-    elif isinstance(value, List[int]):
+    elif isinstance(value, list) and all(isinstance(v, int) for v in value):
         val_text = ', '.join(value)
         Adams.execute_cmd(f'var set var={parent}.{name} int={val_text}')
 
-    elif isinstance(value, List[Object]):
+    elif isinstance(value, list) and all(isinstance(v, Object) for v in value):
         val_text = ', '.join(value)
         Adams.execute_cmd(f'var set var={parent}.{name} obj={val_text}')
 

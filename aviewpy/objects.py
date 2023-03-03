@@ -5,7 +5,8 @@ from DataElement import DataElement  # type: ignore # noqa
 from DBAccess import find_by_full_name  # type: ignore # noqa
 from Manager import AdamsManager  # type: ignore # noqa
 from Model import Model  # type: ignore # noqa
-from Object import DuplicateAttributeError, Object  # type: ignore # noqa
+from Object import DuplicateAttributeError  # type: ignore # noqa
+from Object import ObjectBase as Object  # type: ignore # noqa
 
 
 def get_object(full_name: str, mod: Model):

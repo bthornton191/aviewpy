@@ -1,6 +1,6 @@
 # aviewpy
 
-Python tools for working in the [Adams](https://hexagon.com/products/product-groups/computer-aided-engineering-software/adams) View python environment.
+Python tools for working in the [Adams](http://bit.ly/41Is9jf) View python environment.
 
 ## Installation
 

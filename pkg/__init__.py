@@ -1,6 +1,6 @@
 # ---------------------
-version = '1.3.0'
-version_notes = ''
+version = '1.3.1'
+version_notes = 'minor bug fixes'
 date = 'March 3rd, 2023'
 # ---------------------
 author = 'Ben Thornton'

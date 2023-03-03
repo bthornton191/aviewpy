@@ -9,9 +9,9 @@ from aviewpy.objects import delete_objects, get_managers, get_object
 from aviewpy.objects import get_parent_model
 from aviewpy.ui.alerts import adams_errors_suppressed
 
-from DBAccess import SetValueFailed  # type: ignore # noqa
-from Model import Model  # type: ignore # noqa
-from Object import Object  # type: ignore # noqa
+from DBAccess import SetValueFailed                                                                 # type: ignore # isort: skip # pylint: disable=wrong-import-order
+from Model import Model                                                                             # type: ignore # isort: skip # pylint: disable=wrong-import-order
+from Object import ObjectBase as Object                                                             # type: ignore # isort: skip # pylint: disable=wrong-import-order
 
 Property = namedtuple('Property', ['entity', 'name', 'value'])
 
