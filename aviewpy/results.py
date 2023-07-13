@@ -50,3 +50,26 @@ def get_sim_errors(msg_file: Path, ignore_static: bool = False):
         errors = [e for e in errors if SIM_STAT_ERROR_MSG.lower() not in e.lower()]
     
     return errors
+
+def write_results(ans: Analysis, file_name: Path, binary=False):
+    """Write the results of an analysis.
+    
+    Parameters
+    ----------
+    ans : Analysis
+        The analysis to write the results of.
+    binary : bool, optional
+        Whether to write the results in binary format, by default False
+    """
+    
+    if binary and ans.parent is not None:
+        xrf = Adams.evaluate_exp(f'user_string("{ans.parent.full_name}.analysis_flags.results_xrf")')
+        Adams.evaluate_exp(f'output set results model = {ans.parent.full_name} xrf = off')
+    
+    try:
+        
+        Adams.execute_cmd(f'file analysis write analysis={ans.full_name} file="{file_name}"')
+        
+    finally:
+        if binary and ans.parent is not None:
+            Adams.evaluate_exp(f'output set results model = {ans.parent.full_name} xrf = {xrf}')

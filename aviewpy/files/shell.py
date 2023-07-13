@@ -70,8 +70,8 @@ def drop_duplicates(points: List[Tuple[float, float, float]],
         df_points_new['new_index'] = np.arange(len(df_points_new))
         df_facets_new = df_facets_new.applymap(lambda ipt: df_points_new.loc[ipt]['new_index'].astype(int))
 
-        new_points = [tuple(r) for _, r in df_points_new[['x', 'y', 'z']].iterrows()]
-        new_facets = [tuple(r) for _, r in df_facets_new.iterrows()]
+        new_points = df_points_new[['x', 'y', 'z']].to_numpy()
+        new_facets = df_facets_new.to_numpy()
 
     else:
         new_points, new_facets = points, facets

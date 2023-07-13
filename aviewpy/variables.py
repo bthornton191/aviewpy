@@ -9,6 +9,10 @@ from Object import ObjectBase as Object  # type: ignore # noqa # isort: skip
 def set_dv(parent, name: str, value, append=False, **kwargs):
     """Sets the value of a design variable. If the design variable does not exist, it is created.
     
+    Note
+    ----
+    Return value is `None` if `parent' is a string.
+
     Parameters
     ----------
     parent : Object or str
@@ -30,7 +34,7 @@ def set_dv(parent, name: str, value, append=False, **kwargs):
     elif isinstance(parent, str):
         dv = _set_dv_str(parent, name, value, append)                                               # pylint: disable=assignment-from-no-return
     else:
-        raise TypeError(f'Invalid type for value: {type(parent)}')
+        raise TypeError(f'Invalid type for value: {type(value)}')
 
     return dv
 
@@ -56,7 +60,7 @@ def _set_dv_str(parent: str, name: str, value: List[Union[Number, str, Object]],
     """Function to handle setting a design variable when the parent is a string"""
     if Adams.evaluate_exp(f'db_exists("{parent}.{name}")') and append:
         value_ = Adams.evaluate_exp(f'{parent}.{name}')
-        value_ = [value_] if not isinstance(value_, (tuple, list)) else value_
+        value_ = [value_] if not isinstance(value_, (tuple, list)) else list(value_)
         value = value_ + value
 
     _cmd_set_dv(value, parent, name)
@@ -105,21 +109,22 @@ def _cmd_set_dv(value: list, parent: str, name: str):
     name : str
         Name of the design variable
     """
+    
     if isinstance(value, list) and all(isinstance(v, str) for v in value):
         val_text = ', '.join([f'"{v}"' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} str={val_text}')
 
     elif isinstance(value, list) and all(isinstance(v, Number) for v in value):
-        val_text = ', '.join(value)
+        val_text = ', '.join([f'{v}' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} real={val_text}')
 
     elif isinstance(value, list) and all(isinstance(v, int) for v in value):
-        val_text = ', '.join(value)
+        val_text = ', '.join([f'{v}' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} int={val_text}')
 
     elif isinstance(value, list) and all(isinstance(v, Object) for v in value):
-        val_text = ', '.join(value)
+        val_text = ', '.join([f'{v}' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} obj={val_text}')
 
     else:
-        raise TypeError(f'Invalid type for value: {type(parent)}')
+        raise TypeError(f'Invalid type for value: {type(value)}')

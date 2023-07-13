@@ -1,12 +1,16 @@
+from __future__ import annotations
 from contextlib import contextmanager
+from typing import Callable
 
 from PyQt4.QtGui import QApplication
 
-import Adams  # type: ignore # noqa # isort: skip
+import Adams  # type: ignore
 
 PROGRESS_BAR_NAME = '.gui.main.status_toolbar.__PROGRESSBAR__status'
 STATUS_LABEL_NAME = '.gui.main.status_toolbar.status_label'
 
+STATUS_CALLBACK: Callable[[str], None] = None
+PROGRESS_CALLBACK: Callable[[float], None] = None
 
 class Label:
     def __set_name__(self, owner, name):
@@ -20,6 +24,9 @@ class Label:
             app.processEvents()
         instance.__dict__[self.storage_name] = value
 
+        if STATUS_CALLBACK is not None:
+            STATUS_CALLBACK(value)
+
     def __get__(self, instance, owner):
         return instance.__dict__[self.storage_name]
 
@@ -29,7 +36,7 @@ class Progress:
         self.storage_name = name # pylint: disable=all
         self._value = None
 
-    def __set__(self, instance, value: float):
+    def __set__(self, instance: ProgressBarUpdater, value: float):
         instance.__dict__[self.storage_name] = value
         if any([self.storage_name not in instance.__dict__,
                 not Adams.evaluate_exp(f'{PROGRESS_BAR_NAME}.displayed'),
@@ -41,6 +48,9 @@ class Progress:
             if isinstance(app, QApplication):
                 app.processEvents()
             instance.show_label()
+
+            if PROGRESS_CALLBACK is not None:
+                PROGRESS_CALLBACK(value)
     
     def __get__(self, instance, owner):
         return instance.__dict__[self.storage_name]

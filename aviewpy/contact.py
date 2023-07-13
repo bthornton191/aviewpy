@@ -162,9 +162,7 @@ def get_track_data(ans: Analysis, track_name: str, mkr: Marker, I_part=True) -> 
         Adams analysis to
     track_name : str
         Full name of contact track
-    ref_part : Part, optional
-        Part to transform coordinates into, (overridden by `ref_mkr`), by default None
-    ref_mkr : Marker, optional
+    mkr : Marker
         Marker to transform coordinates into, by default None
 
     Returns

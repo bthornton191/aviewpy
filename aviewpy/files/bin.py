@@ -1,4 +1,5 @@
 
+import os
 from pathlib import Path
 import re
 from typing import Union
@@ -59,3 +60,13 @@ def get_bin_version(filename: Union[Path, str]):
 
     return '_'.join(str(val) for val in (year, release, update, build) + other
                     if isinstance(val, int) and val != 0)
+
+def is_compatible(filename: Union[Path, str]):
+    bin_ver = get_bin_version(filename)
+    adams_ver =  os.environ['VERSION']
+
+    for bv, av in zip(bin_ver.split('_'), adams_ver.split('_')):
+        if bv > av:
+            return False
+    
+    return True

@@ -5,11 +5,13 @@ import Adams  # type: ignore # noqa
 
 @contextmanager
 def adams_errors_suppressed():
+
+    level = Adams.evaluate_exp('user_string(".system_defaults.graphic_window_level")')
     Adams.execute_cmd('interface message graphic_window_level=quiet')
     try:
         yield
     finally:
-        Adams.execute_cmd('interface message graphic_window_level=Verbose')
+        Adams.execute_cmd(f'interface message graphic_window_level={level}')
 
 
 def alert_box(msg: str, alert_type: str = 'info', exc_type: Exception = None):
