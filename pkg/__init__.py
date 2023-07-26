@@ -1,7 +1,7 @@
 # ---------------------
-version = '1.3.3'
-version_notes = 'refactoring and minor feature enhancements'
-date = 'July 13th, 2023'
+version = '1.3.4'
+version_notes = 'Small change to `write_bin_file`'
+date = 'July 26th, 2023'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'

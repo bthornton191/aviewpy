@@ -5,7 +5,7 @@ from .bin import get_bin_version, read_bin_file, write_bin_file
 
 import Adams # type: ignore # isort: skip # pylint: disable=wrong-import-order
 
-def cached_model_import(cmd_file: Path):
+def cached_model_import(cmd_file: Path, mod_name: str = None, alert=False):
     """Imports a model from a cmd file and caches it in a binary file. Imports from the binary
     file if it already exists and is newer than the cmd file.
 
@@ -26,7 +26,7 @@ def cached_model_import(cmd_file: Path):
 
         # If the cache file exists and it is newer than the cmd file and uses the same version,
         # Read in the cached file
-        read_bin_file(cached_file)
+        read_bin_file(cached_file, mod_name, alert=alert)
     
     else:
 

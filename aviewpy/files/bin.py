@@ -9,10 +9,14 @@ import Adams  # type: ignore # noqa
 from Object import Object  # type: ignore # noqa
 
 
-def write_bin_file(filename: Path, entity: Object = None, alert=False):
+def write_bin_file(filename: Path, entity: Union[Object, str] = None, alert=False):
     cmd = 'file bin write file="{}" alert={}'.format(filename, 'yes' if alert else 'no')
-    if entity is not None:
+    if isinstance(entity, str):
+        cmd += f' entity={entity}'
+    elif isinstance(entity, Object):
         cmd += f' entity={entity.full_name}'
+    elif entity is not None:
+        raise TypeError('entity must be a string or an Object')
 
     Adams.execute_cmd(cmd)
 
