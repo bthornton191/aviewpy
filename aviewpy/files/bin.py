@@ -6,14 +6,14 @@ from typing import Union
 import unicodedata
 
 import Adams  # type: ignore # noqa
-from Object import Object  # type: ignore # noqa
+from Object import ObjectBase  # type: ignore # noqa
 
 
-def write_bin_file(filename: Path, entity: Union[Object, str] = None, alert=False):
+def write_bin_file(filename: Path, entity: Union[ObjectBase, str] = None, alert=False):
     cmd = 'file bin write file="{}" alert={}'.format(filename, 'yes' if alert else 'no')
     if isinstance(entity, str):
         cmd += f' entity={entity}'
-    elif isinstance(entity, Object):
+    elif isinstance(entity, ObjectBase):
         cmd += f' entity={entity.full_name}'
     elif entity is not None:
         raise TypeError('entity must be a string or an Object')
@@ -65,12 +65,13 @@ def get_bin_version(filename: Union[Path, str]):
     return '_'.join(str(val) for val in (year, release, update, build) + other
                     if isinstance(val, int) and val != 0)
 
+
 def is_compatible(filename: Union[Path, str]):
     bin_ver = get_bin_version(filename)
-    adams_ver =  os.environ['VERSION']
+    adams_ver = os.environ['VERSION']
 
     for bv, av in zip(bin_ver.split('_'), adams_ver.split('_')):
         if bv > av:
             return False
-    
+
     return True

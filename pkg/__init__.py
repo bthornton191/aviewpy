@@ -1,7 +1,7 @@
 # ---------------------
-version = '1.3.4'
-version_notes = 'Small change to `write_bin_file`'
-date = 'July 26th, 2023'
+version = '1.3.5'
+version_notes = 'improvements to `set_dv`, `ui.messages.show_message` now respects message threshold'
+date = 'September 1st, 2023'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'

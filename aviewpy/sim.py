@@ -10,6 +10,7 @@ from math import log10
 
 import Adams # type: ignore
 from Simulation import Simulation  # type: ignore
+from .files.bin import write_bin_file
 
 SIM_PREFERNCES = ['internal', 'external', 'write_files_only']
 
@@ -60,7 +61,8 @@ def write_simulation_files(sim: Simulation,
                            file_prefix: str,
                            working_dir: Path = None,
                            aux_files: List[Path] = None,
-                           write_cmd=False):
+                           write_cmd=False,
+                           write_bin=False):
 
     if aux_files is not None and working_dir is not None:
         for aux_file in aux_files:
@@ -71,6 +73,9 @@ def write_simulation_files(sim: Simulation,
     if write_cmd:
         # Write the .cmd file. (NOTE: This file is for reference only)
         Adams.write_command_file(file_name=f'{file_prefix}_.cmd', model=sim.parent)
+    
+    if write_bin:
+        write_bin_file(filename=f'{file_prefix}.bin', entity=sim.parent)
     
     # Write the analysis files
     with temp_sim_prefs(solver_preference='write_files_only', file_prefix=file_prefix):
@@ -91,7 +96,7 @@ def write_simulation_files(sim: Simulation,
             shutil.move(file.name, working_dir)
 
 
-def solve(acf_file: Path, wait=False, use_adams_car=False):
+def solve(acf_file: Path, wait=False, use_adams_car=False) -> subprocess.Popen:
     """Runs Adams Solver to solve the model specified in `acf_file`
 
     Parameters
@@ -137,7 +142,12 @@ def solve(acf_file: Path, wait=False, use_adams_car=False):
     return proc
 
 
-def submit(sim: Simulation, file_prefix: str, use_adams_car=False, wait=False, write_cmd=False):
+def submit(sim: Simulation,
+           file_prefix: str,
+           use_adams_car=False,
+           wait=False,
+           write_cmd=False,
+           write_bin=False):
     """Run a simulation externally and import results on completion.
     
     Parameters
@@ -151,7 +161,9 @@ def submit(sim: Simulation, file_prefix: str, use_adams_car=False, wait=False, w
     wait : bool, optional
         Whether to wait for the simulation to complete, by default False
     write_cmd : bool, optional
-        Whether to write the .cmd file (for reference only), by default False
+        Whether to write a .cmd file of the current model (for reference only), by default False
+    write_bin : bool, optional
+        Whether to write a .bin file of the current model (for reference only), by default False
         
     Returns
     -------
@@ -160,10 +172,11 @@ def submit(sim: Simulation, file_prefix: str, use_adams_car=False, wait=False, w
     """
     acf_file = Path.cwd() / f'{file_prefix}.acf'
 
-    write_simulation_files(sim, file_prefix, write_cmd=write_cmd)
+    write_simulation_files(sim, file_prefix, write_cmd=write_cmd, write_bin=write_bin)
     proc = solve(acf_file, wait=wait, use_adams_car=use_adams_car)
 
     return proc
+
 
 @contextmanager
 def temp_sim_prefs(**kwargs):
