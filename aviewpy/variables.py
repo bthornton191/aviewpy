@@ -1,17 +1,38 @@
 
-from functools import singledispatch
 from numbers import Number
-from typing import Iterable, List, Union
+from typing import List, Tuple, TypeVar, Union, overload
 
 import Adams  # type: ignore
 from Object import ObjectBase  # type: ignore
 from Object import Object  # type: ignore
-from Analysis import Analysis  # type: ignore
 from DesignVariable import DesignVariable  # type: ignore
 
-def set_dv(parent, name: str, value, append=False, **kwargs)->Union[DesignVariable, None]:
+
+@overload
+def set_dv(parent: str,
+           name: str,
+           value: Union[Number, str, ObjectBase],
+           append=False,
+           **kwargs) -> None:
+    ...
+
+
+@overload
+def set_dv(parent:  Union[Object, ObjectBase],
+           name: str,
+           value: Union[Number, str, ObjectBase],
+           append=False,
+           **kwargs) -> DesignVariable:
+    ...
+
+
+def set_dv(parent: Union[str, Object, ObjectBase],
+           name: str,
+           value,
+           append=False,
+           **kwargs) -> Union[DesignVariable, None]:
     """Sets the value of a design variable. If the design variable does not exist, it is created.
-    
+
     Note
     ----
     Return value is `None` if `parent' is a string.
@@ -30,7 +51,10 @@ def set_dv(parent, name: str, value, append=False, **kwargs)->Union[DesignVariab
         Additional keyword arguments to pass to the DesignVariable.create* methods.
     """
     # Make sure the value is a list
-    value = [value] if not isinstance(value, Iterable) or isinstance(value, str) else value
+    value = make_list(value)
+
+    if len(value) == 0:
+        raise ValueError('Value cannot be an empty list!')
 
     if isinstance(parent, str):
         _set_dv_str(parent, name, value, append)
@@ -38,15 +62,15 @@ def set_dv(parent, name: str, value, append=False, **kwargs)->Union[DesignVariab
 
     elif isinstance(parent, Object):
         dv = _set_dv_obj(parent, name, value, append, **kwargs)
-    
+
     elif isinstance(parent, ObjectBase):
-        # Must treat `ObjectBase`s that aren't `Object`s (e.g. `Analysis`) different because the 
+        # Must treat `ObjectBase`s that aren't `Object`s (e.g. `Analysis`) different because the
         # python API doesn't support setting desisgn variables for analyses, but the cmd API does...
         _set_dv_str(parent.full_name, name, value, append)
         dv = None
-        
+
     else:
-        raise TypeError(f'Invalid type for value: {type(value)}')
+        raise TypeError(f'The parent must be an Object or str, not {type(parent)}')
 
     return dv
 
@@ -58,7 +82,12 @@ def _set_dv_obj(parent: Object, name: str, value: List[Union[Number, str, Object
         dv = parent.DesignVariables[name]
 
         if append:
-            value = dv.value + value
+            try:
+                orig_val = dv.value
+            except OSError:
+                orig_val = make_list(Adams.evaluate_exp(f'{dv.full_name}'))
+
+            value = orig_val + value
 
         dv.update(value=value, **kwargs)
 
@@ -68,19 +97,17 @@ def _set_dv_obj(parent: Object, name: str, value: List[Union[Number, str, Object
     return dv
 
 
-def _set_dv_str(parent: str, name: str, value: List[Union[Number, str, ObjectBase]], append=False)->None:
+def _set_dv_str(parent: str, name: str, value: List[Union[Number, str, ObjectBase]], append=False) -> None:
     """Function to handle setting a design variable when the parent is a string"""
     if Adams.evaluate_exp(f'db_exists("{parent}.{name}")') and append:
-        value_ = Adams.evaluate_exp(f'{parent}.{name}')
-        value_ = [value_] if not isinstance(value_, (tuple, list)) else list(value_)
-        value = value_ + value
+        value = make_list(Adams.evaluate_exp(f'{parent}.{name}')) + value
 
     _cmd_set_dv(value, parent, name)
 
 
 def _create_dv(value: list, parent: Object, name: str, **kwargs):
     """Creates a design variable with the given value.
-    
+
     Parameters
     ----------
     value : List of Number, str, or ObjectBase
@@ -111,7 +138,7 @@ def _create_dv(value: list, parent: Object, name: str, **kwargs):
 
 def _cmd_set_dv(value: list, parent: str, name: str):
     """Sets the value of a design variable. If the design variable does not exist, it is created.
-    
+
     Parameters
     ----------
     value : Number, str, or ObjectBase (or list of any of these)
@@ -121,7 +148,7 @@ def _cmd_set_dv(value: list, parent: str, name: str):
     name : str
         Name of the design variable
     """
-    
+
     if isinstance(value, list) and all(isinstance(v, str) for v in value):
         val_text = ', '.join([f'\'{v}\'' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} str={val_text}')
@@ -135,14 +162,20 @@ def _cmd_set_dv(value: list, parent: str, name: str):
         Adams.execute_cmd(f'var set var={parent}.{name} int={val_text}')
 
     elif isinstance(value, list) and all(isinstance(v, ObjectBase) for v in value):
-        val_text = ', '.join([f'{v}' for v in value])
+        val_text = ', '.join([f'{v.full_name}' for v in value])
         Adams.execute_cmd(f'var set var={parent}.{name} obj={val_text}')
 
     else:
         raise TypeError(f'Invalid type for value: {type(value)}')
 
 
-def get_dv(parent: Union[ObjectBase, str], name: str)->List[Union[Number, str, Object]]:
+class NO_DEFAULT:
+    pass
+
+
+def get_dv(parent: Union[ObjectBase, str],
+           name: str,
+           default: List[Union[Number, str, Object]] = NO_DEFAULT) -> List[Union[Number, str, Object]]:
     """Returns the value of the design variable `name` from the object `parent`.
 
     Parameters
@@ -158,13 +191,47 @@ def get_dv(parent: Union[ObjectBase, str], name: str)->List[Union[Number, str, O
         Value(s) of the design variable
     """
     if isinstance(parent, ObjectBase):
-        parent=parent.full_name
+        parent = parent.full_name
     elif not isinstance(parent, str):
         raise TypeError(f'Invalid type for parent: {type(parent)}')
 
-    value = Adams.evaluate_exp(f'{parent}.{name}')
+    dvs = make_list(Adams.evaluate_exp(f'db_children({parent}, "variable")'))
+
+    if f'{parent}.{name}'.lower() in [n.lower() for n in dvs]:
+        value = Adams.evaluate_exp(f'{parent}.{name}')
+    elif default is NO_DEFAULT:
+        raise ValueError(f'No design variable named "{name}" exists for object "{parent}"')
+    else:
+        value = default
 
     # Make sure the value is a list
-    value = [value] if not isinstance(value, Iterable) or isinstance(value, str) else value
-    
+    value = make_list(value)
+
     return value
+
+
+Input = TypeVar('Input')
+
+
+@overload
+def make_list(value: str) -> List[str]:
+    ...
+
+
+@overload
+def make_list(value: List[Input]) -> List[Input]:
+    ...
+
+
+@overload
+def make_list(value: Tuple[Input]) -> List[Input]:
+    ...
+
+
+@overload
+def make_list(value: Input) -> List[Input]:
+    ...
+
+
+def make_list(value: str) -> List[str]:
+    return list(value) if isinstance(value, (list, tuple)) else [value]

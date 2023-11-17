@@ -89,7 +89,7 @@ class Track():
         normal_unit_lcs: NDArray = mkr_gcs.rot.apply(normal_unit_gcs.loc, inverse=True)
         friction_lcs: NDArray = mkr_gcs.rot.apply(friction_gcs.loc, inverse=True)
         slip_lcs: NDArray = mkr_gcs.rot.apply(slip_gcs.loc, inverse=True)
-        track_pos_lcs: NDArray = mkr_gcs.rot.apply((track_gcs-mkr_gcs).loc, inverse=True)
+        track_pos_lcs: NDArray = mkr_gcs.rot.apply((track_gcs - mkr_gcs).loc, inverse=True)
 
         if False:
             mod = get_parent_model(part)
@@ -190,7 +190,7 @@ def get_track_data(ans: Analysis, track_name: str, mkr: Marker, I_part=True) -> 
     normal_unit_lcs: NDArray = mkr_gcs.rot.apply(normal_unit_gcs.loc, inverse=True)
     friction_lcs: NDArray = mkr_gcs.rot.apply(friction_gcs.loc, inverse=True)
     slip_lcs: NDArray = mkr_gcs.rot.apply(slip_gcs.loc, inverse=True)
-    track_pos_lcs: NDArray = mkr_gcs.rot.apply((track_gcs-mkr_gcs).loc, inverse=True)
+    track_pos_lcs: NDArray = mkr_gcs.rot.apply((track_gcs - mkr_gcs).loc, inverse=True)
 
     if TESTING:
         mod = get_parent_model(part)
@@ -246,39 +246,35 @@ def get_contact_data(geom: Geometry, ans: Analysis, ref_mkr: Marker) -> pd.DataF
         'track': []
     }).set_index('time', drop=True)]
 
-    inc = 100 / len(tracks) if len(tracks) > 0 else 0
-    with progress_bar(f'Processing {geom.parent.name}.{geom.name} contacts...') as pbar:
-        for track in tracks:
+    for track in tracks:
 
-            track_data = track.get_data(mkr=ref_mkr,
-                                        i_part=geom in track.cont.i_geometry)
+        track_data = track.get_data(mkr=ref_mkr,
+                                    i_part=geom in track.cont.i_geometry)
 
-            # Organize the data into a dictionary
-            data = {}
-            for key, values in track_data._asdict().items():
+        # Organize the data into a dictionary
+        data = {}
+        for key, values in track_data._asdict().items():
 
-                # Check if `values` has multiple components
-                if isinstance(values, np.ndarray) and len(values.shape) > 1:
+            # Check if `values` has multiple components
+            if isinstance(values, np.ndarray) and len(values.shape) > 1:
 
-                    # If `values` has multiple components,
-                    # split the components (x,y,z) and get magnitudes
-                    data = {
-                        **data,
-                        **{f'{key}_{d}': values[:, i] for i, d in enumerate(['x', 'y', 'z'])},
-                        key: np.sqrt(np.apply_along_axis(np.sum, 1, values**2))
-                    }
+                # If `values` has multiple components,
+                # split the components (x,y,z) and get magnitudes
+                data = {
+                    **data,
+                    **{f'{key}_{d}': values[:, i] for i, d in enumerate(['x', 'y', 'z'])},
+                    key: np.sqrt(np.apply_along_axis(np.sum, 1, values**2))
+                }
 
-                else:
-                    data[key] = values
+            else:
+                data[key] = values
 
-            # Create DataFrame and append to list
-            dfs.append(pd.DataFrame({**data,
-                                    'step': pd.Series(track_data.time).diff(-1).fillna(0)*-1,
-                                    'contact': track.cont.name,
-                                    'track': track.name})
-                    .set_index('time', drop=True)
-                    .sort_index())
-
-            pbar.progress += inc
+        # Create DataFrame and append to list
+        dfs.append(pd.DataFrame({**data,
+                                'step': pd.Series(track_data.time).diff(-1).fillna(0) * -1,
+                                 'contact': track.cont.name,
+                                 'track': track.name})
+                   .set_index('time', drop=True)
+                   .sort_index())
 
     return pd.concat(dfs)

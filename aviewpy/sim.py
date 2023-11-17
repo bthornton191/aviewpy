@@ -1,24 +1,30 @@
-from contextlib import contextmanager
-from numbers import Number
 import os
-from pathlib import Path
 import platform
 import shutil
 import subprocess
-from typing import List, Tuple, Union
+import time
+from contextlib import contextmanager
 from math import log10
+from numbers import Number
+from pathlib import Path
+from typing import List, Tuple, Union
+import warnings
 
-import Adams # type: ignore
+import psutil
+
+import Adams  # type: ignore
 from Simulation import Simulation  # type: ignore
+
 from .files.bin import write_bin_file
+from .files.msg import get_process_id
 
 SIM_PREFERNCES = ['internal', 'external', 'write_files_only']
-
 SIM_EXTS = ['.acf', '.adm', '.xmt_txt', '.req', '.res', '.msg', '.out', '.gra']
 
-def static_funnel(steps: int, **kwargs: Union[float, Tuple[float, float]])->List[str]:
+
+def static_funnel(steps: int, **kwargs: Union[float, Tuple[float, float]]) -> List[str]:
     """Generate a list of acf commands to simulate a static equilibrium funnel.
-    
+
     Parameters
     ----------
     steps : int
@@ -29,7 +35,7 @@ def static_funnel(steps: int, **kwargs: Union[float, Tuple[float, float]])->List
         is varied linearly between the two values.
     """
     lines = []
-    for step in range(1, steps+1):
+    for step in range(1, steps + 1):
         params = []
         for key, value in kwargs.items():
             if isinstance(value, Number):
@@ -43,9 +49,9 @@ def static_funnel(steps: int, **kwargs: Union[float, Tuple[float, float]])->List
                     start_value = log10(start_value)
                     end_value = log10(end_value)
                     val = 10 ** (start_value + (end_value - start_value) * step / steps)
-                
+
                 else:
-                    
+
                     # If either value is negative, interpolate linearly
                     val = start_value + (end_value - start_value) * step / steps
 
@@ -73,10 +79,10 @@ def write_simulation_files(sim: Simulation,
     if write_cmd:
         # Write the .cmd file. (NOTE: This file is for reference only)
         Adams.write_command_file(file_name=f'{file_prefix}_.cmd', model=sim.parent)
-    
+
     if write_bin:
         write_bin_file(filename=f'{file_prefix}.bin', entity=sim.parent)
-    
+
     # Write the analysis files
     with temp_sim_prefs(solver_preference='write_files_only', file_prefix=file_prefix):
         sim.simulate()
@@ -89,7 +95,7 @@ def write_simulation_files(sim: Simulation,
         # Move all files that have been modified
         files += [f for f, st_mtime in current_files.items()
                   if os.stat(f).st_mtime != st_mtime]
-        
+
         for file in (f for f in files if f.suffix not in ['.log', '.tmp']):
             if (working_dir / file.name).is_file():
                 (working_dir / file.name).unlink()
@@ -149,7 +155,7 @@ def submit(sim: Simulation,
            write_cmd=False,
            write_bin=False):
     """Run a simulation externally and import results on completion.
-    
+
     Parameters
     ----------
     sim : Simulation
@@ -164,7 +170,7 @@ def submit(sim: Simulation,
         Whether to write a .cmd file of the current model (for reference only), by default False
     write_bin : bool, optional
         Whether to write a .bin file of the current model (for reference only), by default False
-        
+
     Returns
     -------
     subprocess.Popen
@@ -196,7 +202,7 @@ def temp_sim_prefs(**kwargs):
     with temporary_sim_preferences(solver_preference='external'):
         sim.simulate()
     ```
-    
+
     To temporarily write files and set the file prefix
     ```python
     with temporary_sim_preferences(file_prefix='my_sim', save_files=True):
@@ -221,13 +227,14 @@ def temp_sim_prefs(**kwargs):
         Adams.execute_cmd(f'simulation set {key} = {value}')
 
     yield
-    
+
     for key, value in current_settings.items():
         Adams.execute_cmd(f'simulation set {key} = {value}')
 
+
 def solve_internal(sim: Simulation, reset=False):
     """Solve a simulation internally.
-    
+
     Parameters
     ----------
     sim : Simulation
@@ -239,5 +246,3 @@ def solve_internal(sim: Simulation, reset=False):
                       f'model_name={sim.parent.full_name} '
                       f'sim_script_name={sim.full_name} '
                       f'reset={"yes" if reset else "no"}')
-
-
