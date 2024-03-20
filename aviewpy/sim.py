@@ -1,16 +1,13 @@
+import logging
 import os
 import platform
 import shutil
 import subprocess
-import time
 from contextlib import contextmanager
 from math import log10
 from numbers import Number
 from pathlib import Path
 from typing import List, Tuple, Union
-import warnings
-
-import psutil
 
 import Adams  # type: ignore
 from Simulation import Simulation  # type: ignore
@@ -20,6 +17,9 @@ from .files.msg import get_process_id
 
 SIM_PREFERNCES = ['internal', 'external', 'write_files_only']
 SIM_EXTS = ['.acf', '.adm', '.xmt_txt', '.req', '.res', '.msg', '.out', '.gra']
+
+
+LOG = logging.getLogger(__name__)
 
 
 def static_funnel(steps: int, **kwargs: Union[float, Tuple[float, float]]) -> List[str]:
@@ -153,7 +153,8 @@ def submit(sim: Simulation,
            use_adams_car=False,
            wait=False,
            write_cmd=False,
-           write_bin=False):
+           write_bin=False,
+           just_write_files=False):
     """Run a simulation externally and import results on completion.
 
     Parameters
@@ -179,7 +180,10 @@ def submit(sim: Simulation,
     acf_file = Path.cwd() / f'{file_prefix}.acf'
 
     write_simulation_files(sim, file_prefix, write_cmd=write_cmd, write_bin=write_bin)
-    proc = solve(acf_file, wait=wait, use_adams_car=use_adams_car)
+    if not just_write_files:
+        proc = solve(acf_file, wait=wait, use_adams_car=use_adams_car)
+    else:
+        proc = None
 
     return proc
 
@@ -224,12 +228,16 @@ def temp_sim_prefs(**kwargs):
         if isinstance(value, bool):
             value = 'yes' if value else 'no'
 
-        Adams.execute_cmd(f'simulation set {key} = {value}')
+        cmd = f'simulation set {key} = {value}'
+        LOG.debug(f'Running command: {cmd}')
+        Adams.execute_cmd(cmd)
 
     yield
 
     for key, value in current_settings.items():
-        Adams.execute_cmd(f'simulation set {key} = {value}')
+        cmd = f'simulation set {key} = {value}'
+        LOG.debug(f'Running command: {cmd}')
+        Adams.execute_cmd(cmd)
 
 
 def solve_internal(sim: Simulation, reset=False):
