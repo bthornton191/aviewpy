@@ -114,13 +114,13 @@ def _get_filename_from_dialog(file_type):
         str -- Filename of file selected by user.
     """
 
-    if file_type is 'res':
+    if file_type == 'res':
         caption = 'Select a results file.'
         filter = 'Adams Results Files (*.res)'
         # Bring up a dialog for the user to select a results file
         filename = PyQt4.QtGui.QFileDialog.getOpenFileName(caption=caption, filter=filter)
 
-    elif file_type is 'csv':
+    elif file_type == 'csv':
         caption = 'Select location to save the csv results file.'
         filter = 'CSV Files (*.csv)'
         # Bring up a dialog for the user to select a results file
