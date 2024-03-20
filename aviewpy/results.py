@@ -8,6 +8,7 @@ from Analysis import Analysis  # type: ignore
 from aviewpy.objects import get_parent_model  # type: ignore
 
 SIM_STAT_ERROR_MSG = 'static equilibrium analysis has not been successful'
+PARSE_ERROR_MSG = 'errors found parsing command. command ignored.'
 
 
 def create_result(ans: Analysis, res_name: str, comp_name: str, values: List[float], units: str):
@@ -47,7 +48,7 @@ def create_result(ans: Analysis, res_name: str, comp_name: str, values: List[flo
     return get_parent_model(ans).Analyses[ans.name]
 
 
-def get_sim_errors(msg_file: Path, ignore_static: bool = False):
+def get_sim_errors(msg_file: Path, ignore_static: bool = False, ignore_parse: bool = False):
     """Get the simulation errors from a .msg file.
 
     Parameters
@@ -64,6 +65,9 @@ def get_sim_errors(msg_file: Path, ignore_static: bool = False):
 
     if ignore_static:
         errors = [e for e in errors if SIM_STAT_ERROR_MSG.lower() not in e.lower()]
+
+    if ignore_parse:
+        errors = [e for e in errors if PARSE_ERROR_MSG.lower() not in e.lower()]
 
     return errors
 
