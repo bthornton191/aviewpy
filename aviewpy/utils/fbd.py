@@ -1,3 +1,6 @@
+"""This module contains a function `show_fbd` which creates an animation in the Adams post processor 
+with only one part visible, and all force vectors on that part displayed.
+"""
 from typing import List
 from Analysis import Analysis  # type: ignore
 from Part import Part  # type: ignore
@@ -22,7 +25,16 @@ CHILD_ATTRS = [*ICHILD_ATTRS,
 
 
 def show_fbd(ans: Analysis, part: Part):
+    """Creates an animation in the Adams post processor with only one part visible, and all force 
+    vectors on that part displayed.
 
+    Parameters
+    ----------
+    ans : Analysis
+        The analysis object
+    part : Part
+        The part for which the fbd animation is to be created
+    """
     mod = get_parent_model(part)
 
     # Hide all other parts
@@ -159,11 +171,3 @@ def is_ipart(part: Part, obj: ObjectSubBase):
             return True
 
     return False
-
-
-if __name__ == '__main__':
-    mod = Adams.getCurrentModel()
-    part = mod.Parts['segment_arm_right']
-    ans = next(a for a in mod.Analyses.values())
-
-    show_fbd(ans, part)
