@@ -14,6 +14,17 @@ def adams_errors_suppressed():
         Adams.execute_cmd(f'interface message graphic_window_level={level}')
 
 
+@contextmanager
+def adams_warnings_suppressed():
+
+    level = Adams.evaluate_exp('user_string(".system_defaults.threshold")')
+    Adams.execute_cmd('interface message threshold=error')
+    try:
+        yield
+    finally:
+        Adams.execute_cmd(f'interface message threshold={level}')
+
+
 def alert_box(msg: str, alert_type: str = 'info', exc_type: Exception = None):
     """Adams View alert box
 

@@ -4,7 +4,7 @@ from typing import List, Tuple, TypeVar, Union, overload
 
 import Adams  # type: ignore
 from Object import ObjectBase  # type: ignore
-from Object import Object  # type: ignore
+from Object import ObjectComment  # type: ignore
 from DesignVariable import DesignVariable  # type: ignore
 
 
@@ -18,7 +18,7 @@ def set_dv(parent: str,
 
 
 @overload
-def set_dv(parent:  Union[Object, ObjectBase],
+def set_dv(parent:  Union[ObjectComment, ObjectBase],
            name: str,
            value: Union[Number, str, ObjectBase],
            append=False,
@@ -26,7 +26,7 @@ def set_dv(parent:  Union[Object, ObjectBase],
     ...
 
 
-def set_dv(parent: Union[str, Object, ObjectBase],
+def set_dv(parent: Union[str, ObjectComment, ObjectBase],
            name: str,
            value,
            append=False,
@@ -60,22 +60,22 @@ def set_dv(parent: Union[str, Object, ObjectBase],
         _set_dv_str(parent, name, value, append)
         dv = None
 
-    elif isinstance(parent, Object):
+    elif isinstance(parent, ObjectComment):
         dv = _set_dv_obj(parent, name, value, append, **kwargs)
 
     elif isinstance(parent, ObjectBase):
-        # Must treat `ObjectBase`s that aren't `Object`s (e.g. `Analysis`) different because the
+        # Must treat `ObjectBase`s that aren't `ObjectComment`s (e.g. `Analysis`) different because the
         # python API doesn't support setting desisgn variables for analyses, but the cmd API does...
         _set_dv_str(parent.full_name, name, value, append)
         dv = None
 
     else:
-        raise TypeError(f'The parent must be an Object or str, not {type(parent)}')
+        raise TypeError(f'The parent must be an ObjectComment or str, not {type(parent)}')
 
     return dv
 
 
-def _set_dv_obj(parent: Object, name: str, value: List[Union[Number, str, ObjectBase]], append=False, **kwargs):
+def _set_dv_obj(parent: ObjectComment, name: str, value: List[Union[Number, str, ObjectBase]], append=False, **kwargs):
     """Function to handle setting a design variable when the parent is an ObjectBase"""
     if name in parent.DesignVariables:
         # If the design variable already exists
@@ -105,14 +105,14 @@ def _set_dv_str(parent: str, name: str, value: List[Union[Number, str, ObjectBas
     _cmd_set_dv(value, parent, name)
 
 
-def _create_dv(value: list, parent: Object, name: str, **kwargs):
+def _create_dv(value: list, parent: ObjectComment, name: str, **kwargs):
     """Creates a design variable with the given value.
 
     Parameters
     ----------
     value : List of Number, str, or ObjectBase
         Value(s) to set the design variable to
-    parent : Object
+    parent : ObjectComment
         Parent object of the design variable
     name : str
         Name of the design variable
@@ -175,7 +175,7 @@ class NO_DEFAULT:
 
 def get_dv(parent: Union[ObjectBase, str],
            name: str,
-           default: List[Union[Number, str, Object]] = NO_DEFAULT) -> List[Union[Number, str, Object]]:
+           default: List[Union[Number, str, ObjectComment]] = NO_DEFAULT) -> List[Union[Number, str, ObjectComment]]:
     """Returns the value of the design variable `name` from the object `parent`.
 
     Parameters
@@ -187,7 +187,7 @@ def get_dv(parent: Union[ObjectBase, str],
 
     Returns
     -------
-    List[Number, str, or Object]
+    List[Number, str, or ObjectComment]
         Value(s) of the design variable
     """
     if isinstance(parent, ObjectBase):
