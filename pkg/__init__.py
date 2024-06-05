@@ -1,16 +1,10 @@
 # ---------------------
-version = '1.3.6'
+version = '1.3.7'
 version_notes = (
-    'Add ignore_parse parameter to get_sim_errors function\n'
-    'Add logging and modify submit function\n'
-    'Add turn_on_all_force_graphics module\n'
-    'Add show_fbd function to display Free Body Diagram\n'
-    'Formatting and changed "aview_main" to "__main__"\n'
-    'Fix comparison operators in res_to_csv.py\n'
-    'Add show_fbd function to create animation in Adams post processor\n'
-    'Replaced Object class with ObjectComment class in variables.py. Added an adams_warning_suppressed context manager to alerts.py\n'
+    'Improved typing\n'
+    'added an optional `callback` argument to `sim.submit()` allowing a Callable to be passed to `sim.submit()` that is called after the simulation files are written.\n'
 )
-date = 'April 26th, 2024'
+date = 'June 5th, 2024'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'
