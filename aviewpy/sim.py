@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from math import log10
 from numbers import Number
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import Adams  # type: ignore
 from Simulation import Simulation  # type: ignore
@@ -154,7 +154,8 @@ def submit(sim: Simulation,
            wait=False,
            write_cmd=False,
            write_bin=False,
-           just_write_files=False):
+           just_write_files=False,
+           callback: Callable = None):
     """Run a simulation externally and import results on completion.
 
     Parameters
@@ -171,7 +172,10 @@ def submit(sim: Simulation,
         Whether to write a .cmd file of the current model (for reference only), by default False
     write_bin : bool, optional
         Whether to write a .bin file of the current model (for reference only), by default False
-
+    just_write_files : bool, optional
+        Whether to just write the simulation files and not run the simulation, by default False
+    callback : Callable, optional
+        A function to run before the simulation is submitted, by default None
     Returns
     -------
     subprocess.Popen
@@ -180,6 +184,10 @@ def submit(sim: Simulation,
     acf_file = Path.cwd() / f'{file_prefix}.acf'
 
     write_simulation_files(sim, file_prefix, write_cmd=write_cmd, write_bin=write_bin)
+
+    if callback is not None:
+        callback()
+
     if not just_write_files:
         proc = solve(acf_file, wait=wait, use_adams_car=use_adams_car)
     else:

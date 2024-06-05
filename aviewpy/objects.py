@@ -7,6 +7,7 @@ from Manager import AdamsManager  # type: ignore # noqa
 from Model import Model  # type: ignore # noqa
 from Object import DuplicateAttributeError  # type: ignore # noqa
 from Object import ObjectBase as Object  # type: ignore # noqa
+from UDE import UserDefinedElement, UserDefinedInstance  # type: ignore # noqa
 
 
 def get_object(full_name: str, mod: Model):
@@ -58,6 +59,7 @@ def all_descendants(obj: Object) -> Generator[Object, None, None]:
             yield from all_descendants(descendant)
 
             if hasattr(descendant, 'objects'):
+                descendant: Union[UserDefinedElement, UserDefinedInstance]
                 yield from (obj for obj in descendant.objects if obj is not None)
 
 
@@ -65,7 +67,7 @@ def get_managers(parent: Object):
     return [mgr for mgr in parent.__dict__.values() if isinstance(mgr, AdamsManager)]
 
 
-def get_parent_model(entity: Object)->Model:
+def get_parent_model(entity: Object) -> Model:
     """Returns the parent model of `entity`.
 
     Parameters
@@ -113,7 +115,6 @@ def set_unique_adams_id(entity):
     return adams_id
 
 
-
 def unique_object_name(full_name: str) -> str:
     """Returns a unique name for an object in a model
 
@@ -133,7 +134,7 @@ def unique_object_name(full_name: str) -> str:
         return full_name
 
     unique_name = full_name
-    
+
     if full_name.split('_')[-1].isdigit():
         idx = int(full_name.split('_')[-1])+1
         full_name = '_'.join(full_name.split('_')[:-1])
@@ -145,7 +146,7 @@ def unique_object_name(full_name: str) -> str:
     while find_by_full_name(unique_name):
         idx += 1
         unique_name = f'{full_name}_{idx}'
-        
+
     return unique_name
 
 
