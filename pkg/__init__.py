@@ -1,6 +1,6 @@
 # ---------------------
-version = '1.3.7'
-version_notes = (
+version = '1.3.8'
+commit_message = (
     'Improved typing\n'
     'added an optional `callback` argument to `sim.submit()` allowing a Callable to be passed to `sim.submit()` that is called after the simulation files are written.\n'
 )
