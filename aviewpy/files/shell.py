@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import stl
-from mpl_toolkits import mplot3d
 from scipy.spatial import KDTree
 
 
@@ -220,7 +219,9 @@ def to_stl_mesh(points, facets):
     return mesh
 
 
-def plot_shell(points, facets):
+def plot_shell(points, facets, show_normals=True):
+
+    from mpl_toolkits import mplot3d  # lazy import to reduce compatibility issues.
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -233,7 +234,8 @@ def plot_shell(points, facets):
     scale = mesh.points.flatten()
     ax.auto_scale_xyz(scale, scale, scale)
 
-    for centroid, normal in zip(mesh.centroids, mesh.normals):
-        ax.plot(*np.array([centroid, (centroid + normal * 2)]).T, c='r')
+    if show_normals:
+        for centroid, normal in zip(mesh.centroids, mesh.normals):
+            ax.plot(*np.array([centroid, (centroid + normal * 2)]).T, c='r')
 
     return ax
