@@ -85,7 +85,9 @@ def write_simulation_files(sim: Simulation,
 
     # Write the analysis files
     with temp_sim_prefs(solver_preference='write_files_only', file_prefix=file_prefix):
-        sim.simulate()
+        Adams.execute_cmd('simulation single_run scripted'
+                          f'    model_name={sim.parent.full_name}'
+                          f'    sim_script_name={sim.full_name}')
 
     if working_dir is not None:
 
