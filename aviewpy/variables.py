@@ -184,6 +184,9 @@ def get_dv(parent: Union[ObjectBase, str],
         Parent object of the design variable
     name : str
         Name of the design variable
+    default : List of Number, str, or ObjectComment, optional
+        Default value to return if the design variable does not exist. If not provided, an error 
+        is raised.
 
     Returns
     -------
