@@ -4,6 +4,7 @@ from typing import List, Tuple
 import pickle as pkl
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 import pandas as pd
 import stl
@@ -65,7 +66,7 @@ def drop_duplicates(points: List[Tuple[float, float, float]],
 
         df_points_new = df_points.copy(deep=True).drop_duplicates()
         df_points_new['new_index'] = np.arange(len(df_points_new))
-        df_facets_new = df_facets_new.applymap(lambda ipt: df_points_new.loc[ipt]['new_index'].astype(int))
+        df_facets_new = df_facets_new.apply(lambda col: col.map(lambda ipt: df_points_new.loc[ipt]['new_index'].astype(int)))
 
         new_points = df_points_new[['x', 'y', 'z']].to_numpy()
         new_facets = df_facets_new.to_numpy()
@@ -221,8 +222,6 @@ def to_stl_mesh(points, facets):
 
 def plot_shell(points, facets, show_normals=True):
 
-    from mpl_toolkits import mplot3d  # lazy import to reduce compatibility issues.
-
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 
@@ -230,7 +229,7 @@ def plot_shell(points, facets, show_normals=True):
     mesh.update_normals()
     mesh.update_centroids()
 
-    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors, alpha=.75, edgecolor='k'))
+    ax.add_collection3d(Poly3DCollection(mesh.vectors, alpha=.75, edgecolor='k'))
     scale = mesh.points.flatten()
     ax.auto_scale_xyz(scale, scale, scale)
 

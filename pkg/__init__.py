@@ -1,17 +1,17 @@
 # ---------------------
-version = '1.3.8'
+version = '1.3.9'
 commit_message = (
-    'Improved typing\n'
-    'added an optional `callback` argument to `sim.submit()` allowing a Callable to be passed to `sim.submit()` that is called after the simulation files are written.\n'
+    'Fixed mplot3d import issue and bumped version number'
 )
-date = 'June 5th, 2024'
+date = 'April 8th, 2026'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'
 name = 'aviewpy'
 description = 'Python tools for working with in the Adams View python environment'
-install_requires = ['numpy',
+install_requires = ['numpy>=1.20.0',
                     'pandas',
                     'scipy',
                     'numpy-stl',
+                    'matplotlib>=3.5',
                     'adamspy']

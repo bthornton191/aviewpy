@@ -21,3 +21,4 @@ aviewpy/__pycache__/aviewpy.cpython-36.pyc
 # virtualenv
 env*/ 
 **__pycache__
+test/resources/*.bshl
