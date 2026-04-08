@@ -1,7 +1,5 @@
 import re
-from typing import List
 from Object import Object  # type: ignore
-from ..files.mac import RE_MACRO_PARAM, get_macro_params  # for backwards compatibility
 
 DEACTIVAETABLE_TYPES = {
     'beam': [],
