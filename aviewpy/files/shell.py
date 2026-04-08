@@ -117,7 +117,7 @@ def read_shell_file(file_name: Path, use_cache=True):
         try:
             points, facets = _parse_lines(lines)
         except Exception:                                                                               # pylint: disable=broad-except
-            lines = [l for l in lines if all(is_number(v) for v in l.split())]
+            lines = [line for line in lines if all(is_number(v) for v in line.split())]
             points, facets = _parse_lines(lines)
 
         # Remove duplicate points
