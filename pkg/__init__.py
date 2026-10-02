@@ -1,9 +1,12 @@
 # ---------------------
-version = '1.3.9'
+version = '1.4.0'
 commit_message = (
-    'Fixed mplot3d import issue and bumped version number'
+    'Linux support: solve() finds the mdi launcher from lowercase topdir / '
+    'ADAMS_LAUNCH_COMMAND (no common/mdi.bat on Linux), closes stdin on the '
+    'POSIX launcher, and temp_sim_prefs only rewrites file_prefix separators '
+    'to backslashes on Windows'
 )
-date = 'April 8th, 2026'
+date = 'October 2nd, 2026'
 # ---------------------
 author = 'Ben Thornton'
 author_email = 'ben.thornton@hexagon.com'

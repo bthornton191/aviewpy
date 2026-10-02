@@ -123,7 +123,28 @@ def solve(acf_file: Path, wait=False, use_adams_car=False) -> subprocess.Popen:
     """
     acf_file = Path(acf_file).absolute()
     cwd = str(acf_file.parent)
-    mdi_cmd = Path(os.environ['TOPDIR']) / 'common' / 'mdi.bat'
+    # Cross-platform launcher discovery (Linux port, tracked downstream as
+    # CDM WP3 / audit B3). On Windows the launcher is
+    # <topdir>/common/mdi.bat and TOPDIR is exported; on Linux the install
+    # exports only the lowercase ``topdir`` and the launcher is
+    # <topdir>/mdi -- there is no common/ directory and no mdi.bat, so the
+    # historic os.environ['TOPDIR'] raised KeyError there. An explicit
+    # ADAMS_LAUNCH_COMMAND wins on both platforms: callers that drive a
+    # specific Adams install (the CDM qualification harness does) set it,
+    # and it must not be overridden by whatever topdir the ambient session
+    # happens to carry.
+    launch_cmd = os.environ.get('ADAMS_LAUNCH_COMMAND')
+    topdir = os.environ.get('TOPDIR') or os.environ.get('topdir')
+    if launch_cmd:
+        mdi_cmd = Path(launch_cmd)
+    elif topdir and platform.system() == 'Windows':
+        mdi_cmd = Path(topdir) / 'common' / 'mdi.bat'
+    elif topdir:
+        mdi_cmd = Path(topdir) / 'mdi'
+    else:
+        raise RuntimeError(
+            'Neither ADAMS_LAUNCH_COMMAND nor TOPDIR/topdir is set; cannot '
+            'locate the Adams mdi launcher to solve ' + str(acf_file))
 
     if platform.system() == 'Windows':
         startupinfo = subprocess.STARTUPINFO()
@@ -137,12 +158,16 @@ def solve(acf_file: Path, wait=False, use_adams_car=False) -> subprocess.Popen:
         proc = subprocess.Popen(command, cwd=cwd, startupinfo=startupinfo)
 
     else:
+        # POSIX mdi is a csh wrapper: '-c' selects the product run and the
+        # trailing 'exit' stops the wrapper from spinning at its menu
+        # prompt once the solver returns. stdin is closed for the same
+        # reason -- a live stdin keeps the menu alive.
         if use_adams_car is False:
-            command = [mdi_cmd, '-c', 'ru-standard', 'i', acf_file.name, 'exit']
+            command = [str(mdi_cmd), '-c', 'ru-standard', 'i', acf_file.name, 'exit']
         else:
-            command = [mdi_cmd, '-c', 'acar', 'ru-solver', 'i', acf_file.name, 'exit']
+            command = [str(mdi_cmd), '-c', 'acar', 'ru-solver', 'i', acf_file.name, 'exit']
 
-        proc = subprocess.Popen(command, cwd=cwd)
+        proc = subprocess.Popen(command, cwd=cwd, stdin=subprocess.DEVNULL)
 
     if wait:
         proc.wait()
@@ -229,8 +254,15 @@ def temp_sim_prefs(**kwargs):
             current_settings[key] = SIM_PREFERNCES[Adams.evaluate_exp('.sim_preferences.solver_preference')]
         elif key == 'file_prefix':
             file_prefix = Adams.evaluate_exp('.sim_preferences.file_prefix')
-            current_settings[key] = '"{}"'.format(Path(file_prefix).as_posix().replace('/', r'\\'))
-            value = '"{}"'.format(Path(value).as_posix().replace('/', r'\\'))
+            if platform.system() == 'Windows':
+                # Windows separators only (Linux port / audit B4): the
+                # historic unconditional rewrite mangled directory-bearing
+                # prefixes on POSIX, where the separator must stay '/'.
+                current_settings[key] = '"{}"'.format(Path(file_prefix).as_posix().replace('/', r'\\'))
+                value = '"{}"'.format(Path(value).as_posix().replace('/', r'\\'))
+            else:
+                current_settings[key] = '"{}"'.format(Path(file_prefix).as_posix())
+                value = '"{}"'.format(Path(value).as_posix())
         else:
             current_settings[key] = Adams.evaluate_exp(f'.sim_preferences.{key}')
 
